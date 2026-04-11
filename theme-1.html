@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+   
+    <title>Document</title>
+    <link rel="stylesheet" href="css/style-theme-1.css">
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Playables SDK -->
+<script>// Playables SDK v1.0.0
+// Game lifecycle bridge: rAF-based game-ready detection + event communication
+(function() {
+  'use strict';
+
+  // Idempotency: skip if already initialized (e.g., server-side injection
+  // followed by client-side inject-javascript via the Bloks webview component).
+  if (window.playablesSDK) return;
+
+  var HANDLER_NAME = 'playablesGameEventHandler';
+  var ANDROID_BRIDGE_NAME = '_MetaPlayablesBridge';
+  var RAF_FRAME_THRESHOLD = 3;
+
+  var gameReadySent = false;
+  var firstInteractionSent = false;
+  var errorSent = false;
+  var frameCount = 0;
+  var originalRAF = window.requestAnimationFrame;
+
+  // --- Transport Layer ---
+
+  function hasIOSBridge() {
+    return !!(window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers[HANDLER_NAME]);
+  }
+
+  function hasAndroidBridge() {
+    return !!(window[ANDROID_BRIDGE_NAME] &&
+              typeof window[ANDROID_BRIDGE_NAME].postEvent === 'function');
+  }
+
+  function isInIframe() {
+    return !!(window.parent && window.parent !== window);
+  }
+
+  function sendEvent(eventName, payload) {
+    var message = {
+      type: eventName,
+      payload: payload || {},
+      timestamp: Date.now()
+    };
+
+    if (hasIOSBridge()) {
+      try {
+        window.webkit.messageHandlers[HANDLER_NAME].postMessage(message);
+      } catch (e) { /* ignore */ }
+      return;
+    }
+
+    if (hasAndroidBridge()) {
+    try {
+      var p = payload || {};
+      p.__secureToken = window.__fbAndroidBridgeAuthToken || '';
+      window[ANDROID_BRIDGE_NAME].postEvent(
+        eventName,
+        JSON.stringify(p)
+      );
+    } catch (e) { /* ignore */ }
+    return;
+  }
+
+    if (isInIframe()) {
+      try {
+        window.parent.postMessage(message, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+  }
+
+  // --- rAF Game-Ready Detection ---
+
+  function onFrame() {
+    if (gameReadySent) return;
+
+    frameCount++;
+    if (frameCount >= RAF_FRAME_THRESHOLD) {
+      gameReadySent = true;
+      sendEvent('game_ready', {
+        frame_count: frameCount,
+        detected_at: Date.now()
+      });
+      return;
+    }
+
+    originalRAF.call(window, onFrame);
+  }
+
+  if (originalRAF) {
+    window.requestAnimationFrame = function(callback) {
+      if (!gameReadySent) {
+        return originalRAF.call(window, function(timestamp) {
+          frameCount++;
+          if (frameCount >= RAF_FRAME_THRESHOLD && !gameReadySent) {
+            gameReadySent = true;
+            sendEvent('game_ready', {
+              frame_count: frameCount,
+              detected_at: Date.now()
+            });
+          }
+          callback(timestamp);
+        });
+      }
+      return originalRAF.call(window, callback);
+    };
+  }
+
+  // --- First User Interaction Detection ---
+
+  function setupFirstInteractionDetection() {
+    var events = ['touchstart', 'mousedown', 'keydown'];
+
+    function onFirstInteraction() {
+      if (firstInteractionSent) return;
+      firstInteractionSent = true;
+      sendEvent('user_interaction_start', null);
+
+      for (var i = 0; i < events.length; i++) {
+        document.removeEventListener(events[i], onFirstInteraction, true);
+      }
+    }
+
+    for (var i = 0; i < events.length; i++) {
+      document.addEventListener(events[i], onFirstInteraction, true);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFirstInteractionDetection);
+  } else {
+    setupFirstInteractionDetection();
+  }
+
+  // --- Auto Error Capture ---
+
+  window.addEventListener('error', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    sendEvent('error', {
+      message: event.message || 'Unknown error',
+      source: event.filename || '',
+      lineno: event.lineno || 0,
+      colno: event.colno || 0,
+      auto_captured: true
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    var reason = event.reason;
+    sendEvent('error', {
+      message: (reason instanceof Error) ? reason.message : String(reason),
+      type: 'unhandled_promise_rejection',
+      auto_captured: true
+    });
+  });
+
+  // --- Public API ---
+
+  window.playablesSDK = {
+    complete: function(score) {
+      sendEvent('game_ended', {
+        score: score,
+        completed: true
+      });
+    },
+
+    error: function(message) {
+      if (errorSent) return;
+      errorSent = true;
+      sendEvent('error', {
+        message: message || 'Unknown error',
+        auto_captured: false
+      });
+    },
+
+    sendEvent: function(eventName, payload) {
+      if (!eventName || typeof eventName !== 'string') return;
+      sendEvent(eventName, payload);
+    }
+  };
+
+  // Kick off rAF detection in case no game code calls rAF immediately
+  if (originalRAF) {
+    originalRAF.call(window, onFrame);
+  }
+})();</script>
+<script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GridRows - Modern CSS Grid Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    :root {
+        --color-teal: #29e0bf;
+        --color-dark-teal: #006272;
+        --color-indigo: #3a3fb5;
+        --color-gray: #a5a5a5;
+        --color-purple: #ac2a97;
+        --color-red: #e8362a;
+        --bg-dark: #0f1117;
+        --bg-light: #f8f9fc;
+        --text-dark: #1c1c1e;
+        --text-light: #ffffff;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+ 
+</style>
+</head>
+<body>
+    <!-- Navbar -->
+    
+<div class="topnav" id="myTopnav">
+    <a href="#home" class="active">Home</a>
+    <a href="#about">About</a>
+    <a href="#clients">Clients</a>
+    <a href="#contact">Contact</a>
+    
+    <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+      <i class="fa fa-bars"></i>
+    </a>
+  </div>
+  <script>
+  function myFunction() {
+    var x = document.getElementById("myTopnav");
+    if (x.className === "topnav") {
+      x.className += " responsive";
+    } else {
+      x.className = "topnav";
+    }
+  }
+  </script>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Snaan Sealand<br><span class="highlight"> Traders </span></h1>
+                <p>Custom Authorized Clearing & Forwarding Agent </p>
+                <div class="btn-group">
+                    <a href="#about" class="btn btn-primary">
+                        <i class="fa-solid fa-grid"></i>
+                       About Us
+                    </a>
+                    <a href="#contact" class="btn btn-secondary">
+                        <i class="fa-solid fa-palette"></i>
+                        Contact Us
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+       
+    <section>
+        <!-- Row 8 -->
+        <div class="row-demo">
+           
+            <div class="grid-row row-8">
+                <div class="grid-item bg-purple">
+                  <img src=" https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgYToFcJB5foi9OUiMbxEWaV30I6908zzn1VZ3M5yu4ESqv3I6qDAFoxyOrfQcivZuBX1Oa1VPDkOVLhkIEBfW-c9qtAELLCXNJiZ943R0zy_9R7IDE72f-k2QGqFktWrIu3AuhZVM8pIhqU-8Mb8hEs9qpsHWrLhtMYNAmkOKnlxSbByTiTrC2bGAVd1Ma/s1440/cargo4.jpg ">
+                </div>
+                <div class="grid-item bg-red">
+                    <img src=" https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhJnzYRuxfoXVv-Efl6JV-RvsREiNwzFYN8qnpDAqfc05az-P04ra-tPTiBmGaiSoSIo-CcKEBFQed438uPv3dj_nYyRwTJEHsxRF_eHo7EW8NzAMrPMamK4BIS_eluKuPdO2nNcesH6ABnrxYSoDMtVJNbqu_oVw9FtCMgCStIXmmtm7g1cxDyGad-Xw_o/s1440/cargo1.jpg  ">
+                </div>
+            </div>
+        </div>
+        <div class="row-demo">
+
+            <div class="grid-row row-8">
+                <div class="grid-item bg-purple">
+                    <img src=" https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEibLP0ltaeyll2e26624oU-AzZKNzYlMsra55dK7hTFijDyUC7wWvcq77WszLbqgfIkzsGwGm5hx05orCRQ1uMVtReQatdz6Pit0nFdZvmmdTUvLASJdCDiTqj8nE1s_HzwC1UttEApqyXvnI_ANpDkx7ndlT7vb2u-1am6r7cMeyGkPXP8sJH7Dn_tVCmA/s1440/cargo3.jpg ">
+                </div>
+                <div class="grid-item bg-red">
+                    <img src=" https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiICu6n9petDxgBMKRA9T-uG6XefzRqgna-nYaZ_pcsbL03bES5jyxn0PpYjW9e7VdX-3KvVsKnqT6hK0AdomjAGso5CbmwDv1Shwah4vAPnoUGqvBFwtwLGExa4DRNnJcOZ6itnHOThWafP6EVGM19m6ZlEuB8qomRfqshMtCHFty7cgOXYax8J4NbXx3W/s1440/cargo2.jpg ">
+                </div>
+            </div>
+        </div>
+</section>
+    <!-- Grid Rows Section -->
+    <section id="about">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag">About Us</span>
+                <h2>Established in 1990</h2>
+                <p>Snaan Sealand Traders has been a trusted and rep-utable Custom Authorized Clearing and Forwarding Agent for over three decades.</p>
+            </div>
+
+            <!-- Row 1 -->
+            <div class="row-demo">
+                <!-- <h3>Row 1 <span class="badge">grid-template-columns: 1fr</span></h3> -->
+                <div class="grid-row row-1">
+                    <div class="grid-item bg-indigo">
+                        <div class="fr-label">Excellence and Expertise in Global Logistics
+                            <hr class="hr-1">
+                        </div>
+                        
+                        <div class="desc"><b> Our commitment </b> to excellence, unwavering integrity, and a deep understanding of International trade regulations have made us a cornerstone in the logistics industry.
+                            As a pioneer in the field, we have consistently delivered top-notch clearing and forwarding services to our diverse
+                            clientele. Our team of seasoned professionals possesses a profound knowledge of customs procedures, trade compliance, and the ever-evolving logistics landscape.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="row-demo">
+                <h3> </h3>
+                <div class="grid-row row-2">
+                    <div class="grid-item bg-indigo">
+                        <div class="fr-label">Customized Logistics Solutions with Speed, Reliability & Innovation
+                            <hr class="hr-2">
+                        </div>
+
+                        <div class="desc">
+                            We take pride in offering comprehensive solutions tailored to the unique needs of our clients. Whether it's import or export, air or sea, large shipments or small parcels, Snaan Sealand Traders ensures that your goods move swiftly and efficiently through customs and to their final destination.
+                            <br>
+                            Our success story is built on transparency, reliability, and a relentless pursuit of customer satisfaction. We leverage
+                            cutting-edge technology to streamline processes, reduce transit times, and minimize costs.
+                        </div>
+                    </div>
+                    <div class="grid-item bg-indigo">
+                        <div class="fr-label">Your Trusted Partner in Seamless Global Trade for Over 30 Years
+                            <hr class="hr-2">
+                        </div>
+                        <div class="desc"> Additionally, our longstanding
+                            relationships with regulatory authorities enable us to navigate complex customs regulations with ease.
+                            At Snaan Sealand Traders, we are not just a service provider; we are your trusted partner in international trade. With a legacy of excellence spanning over three decades, we continue to set new standards in clearing and forwarding, making global
+                            commerce seamless for our clients.</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Colors Section -->
+    <section id="colors">
+        <div class="container">
+            <div class="section-header">
+                <h3 class="heading-2">A Customs Authorized Clearing and Forwarding Agent ensures smooth and compliant movement of goods across borders. They handle documentation, customs clearance, and coordination with regulatory authorities. Their expertise helps minimize delays, reduce costs, and streamline international trade operations.</h2>
+            
+            </div>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-display bg-dark-teal">
+                        <div>
+                            
+                        </div>
+                         <h3 class="text-center"> Authorized <br> Logistics Agent</h3>
+                    </div>
+                    <div class="color-info">
+                        
+                        <img src="http://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh-nPw23zPsJ4Nr2rMqsut1Dfylfrwq43mprqFHL4KQ_qAjEesu2_J1xuTHaKsrcW5Vrib-nisA4Y0spz4POOXmwHCl2HUvRXOjvvGWBJy8EoNZ8Gb7SH_wg3x9RpCyGoP3PdunklnASAyWBX-e4RVLAQKziZa2H7GTxmC1aRb_WVQo1jJVYkSD8lnv5zh-/s1440/shipping2.jpg">
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-display bg-dark-teal"> <h3 class="text-center"> Global  <br>  Trade Agent </h3></div>
+                    <div class="color-info">
+                       
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjyyS3cMWF3Tad_L2cYu0HpblM83dY9RZoHKyy0xvwmZPGJr0O4vtamu-WfevW13_WCY24N5Lkg7IQnohEyWJXIpQ7HbK_JZdype-VdnT86saAr6o6_yoU1OTwjNoKPVnRrqjIzfY941xaHDIJduhyphenhyphenPq3rRKq7N7UpIMI41FYsyWHa6SLlHD34__EXGShv8/s1440/shipping1.jpg">
+                    </div>
+                </div>
+                <div class="color-card">
+                   <div class="color-display bg-dark-teal"><h3 class="text-center">  Freight  <br>  Clearing Agent </h3> </div>
+                    <div class="color-info">
+                    
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEit1ov20jfOEvrpzTzB3BLHL9XbOga4b35ISABb55HbutDE9cIgm9oRm09ZA8wtS6PHCBKX4fAC1RAlAcG8VRkdaKTlCTC-GWCTqvsWQw7oRID5nKcuMhGutY8MVHVtY4JWXm_v4J8bXg0gNb0Nd6nUcp8mr6lp7cR423xznisqL-luIUH_NWXMe1p8wqnd/s1440/shipping4.jpg">
+                    </div>
+                
+    </section>
+
+            
+<section id="clients">
+            <!-- Row 8 -->
+
+            <!-- Row 9 -->
+            <div class="row-demo">
+                <h3>Row 9 <span class="badge">grid-template-columns: 3fr 1fr</span></h3>
+                <div class="grid-row row-9">
+                    <div class="grid-item bg-gray">
+                        <div class="fr-label">3fr</div>
+                        <div class="desc">
+                            <h3 class=""text-center">Our Esteemed Clients</h3>
+                            MUHAMMAD SALEEM <br> KHURRAM ASHRAFI
+
+                        </div>
+                    </div>
+                    <div class="grid-item bg-teal">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">25% Sidebar</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- About Section -->
+    <section id="about">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag" style="color: var(--color-teal); border-color: var(--color-teal);">Snaan Sealand  Traders </span>
+                <h2 style="color: white; font-size: medium;">
+                    We value the trust our clients place in us and are committed to building long-term partnerships through reliable and efficient service. Our diverse clientele spans multiple industries, each benefiting from our tailored logistics and clearing solutions. Their continued confidence drives us to maintain the highest standards of professionalism, transparency, and customer satisfaction.
+                </h2>
+                <p>Snaan Sealand  Traders</p>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Our Clients </h3>
+                    
+                    <ul class="feature-list">
+                        <li><i class="fa-solid fa-check"></i> SMB Marblesє</li>
+                        <li><i class="fa-solid fa-check"></i> ALMAJEED Marble & GRANiTEє DAWA WALA CHEMICAL CORPORATION</li>
+                        <li><i class="fa-solid fa-check"></i> Sinco Steel & Re Rolling Mills Pvt Ltdє MN Enterpriseє</li>
+                        <li><i class="fa-solid fa-check"></i> Shabbir & PAPER Board Mills Pvt Ltd.</li>
+
+                        <li><i class="fa-solid fa-check"></i> K S Agencyє Beco Steel Re-Rolling Mills Pvt Ltd</li>
+                        <li><i class="fa-solid fa-check"></i> Cretesol Pvt Ltd</li>
+                    </ul>
+                </div>
+                <div class="about-visual">
+                    <div class="floating-cards">
+                        <div class="float-card">
+                            <i class="fa-solid fa-cube"></i>
+                        </div>
+                        <div class="float-card">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div class="float-card">
+                            <i class="fa-solid fa-table-cells"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <h3 style="color: white; margin-bottom: 1rem;">Snaan Sealand Traders </h3>
+                <p>Modern CSS Grid Layouts for the Future Web</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-github"></i></a>
+                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-dribbble"></i></a>
+                    <a href="#"><i class="fa-brands fa-codepen"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Virtual Tech Built with CSS Grid, Poppins, and modern best practices.</p>
+            </div>
+        </div>
+    </footer>
+
+<script>
+    // Toggle responsive navbar
+    function toggleNav() {
+        const nav = document.getElementById("myTopnav");
+        nav.classList.toggle("responsive");
+    }
+
+    // Active link on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.topnav .menu a');
+
+    function updateActiveLink() {
+        let scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+            const sectionHeight = section.offsetHeight;
+            const sectionTop = section.offsetTop - 100;
+            const sectionId = section.getAttribute('id');
+
+            if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + sectionId) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+
+    // Fade in on scroll animation
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.row-demo, .color-card').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Copy hex code
+    function copyHex(hex, element) {
+        navigator.clipboard.writeText(hex).then(() => {
+            const original = element.textContent;
+            element.textContent = 'Copied!';
+            element.style.background = 'var(--color-teal)';
+            element.style.color = 'white';
+            setTimeout(() => {
+                element.textContent = original;
+                element.style.background = '#f3f4f6';
+                element.style.color = '#374151';
+            }, 1500);
+        });
+    }
+
+    // Form submit
+    function handleSubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        alert(`Thanks ${name}! Your message has been received. We'll get back to you soon.`);
+        e.target.reset();
+    }
+
+    // Close mobile menu on link click
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            const nav = document.getElementById("myTopnav");
+            nav.classList.remove("responsive");
+        });
+    });
+</script>
+</body>
+</html>
+</body>
+</html>

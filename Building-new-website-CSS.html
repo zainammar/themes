@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Playables SDK -->
+<script>// Playables SDK v1.0.0
+// Game lifecycle bridge: rAF-based game-ready detection + event communication
+(function() {
+  'use strict';
+
+  // Idempotency: skip if already initialized (e.g., server-side injection
+  // followed by client-side inject-javascript via the Bloks webview component).
+  if (window.playablesSDK) return;
+
+  var HANDLER_NAME = 'playablesGameEventHandler';
+  var ANDROID_BRIDGE_NAME = '_MetaPlayablesBridge';
+  var RAF_FRAME_THRESHOLD = 3;
+
+  var gameReadySent = false;
+  var firstInteractionSent = false;
+  var errorSent = false;
+  var frameCount = 0;
+  var originalRAF = window.requestAnimationFrame;
+
+  // --- Transport Layer ---
+
+  function hasIOSBridge() {
+    return !!(window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers[HANDLER_NAME]);
+  }
+
+  function hasAndroidBridge() {
+    return !!(window[ANDROID_BRIDGE_NAME] &&
+              typeof window[ANDROID_BRIDGE_NAME].postEvent === 'function');
+  }
+
+  function isInIframe() {
+    return !!(window.parent && window.parent !== window);
+  }
+
+  function sendEvent(eventName, payload) {
+    var message = {
+      type: eventName,
+      payload: payload || {},
+      timestamp: Date.now()
+    };
+
+    if (hasIOSBridge()) {
+      try {
+        window.webkit.messageHandlers[HANDLER_NAME].postMessage(message);
+      } catch (e) { /* ignore */ }
+      return;
+    }
+
+    if (hasAndroidBridge()) {
+    try {
+      var p = payload || {};
+      p.__secureToken = window.__fbAndroidBridgeAuthToken || '';
+      window[ANDROID_BRIDGE_NAME].postEvent(
+        eventName,
+        JSON.stringify(p)
+      );
+    } catch (e) { /* ignore */ }
+    return;
+  }
+
+    if (isInIframe()) {
+      try {
+        window.parent.postMessage(message, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+  }
+
+  // --- rAF Game-Ready Detection ---
+
+  function onFrame() {
+    if (gameReadySent) return;
+
+    frameCount++;
+    if (frameCount >= RAF_FRAME_THRESHOLD) {
+      gameReadySent = true;
+      sendEvent('game_ready', {
+        frame_count: frameCount,
+        detected_at: Date.now()
+      });
+      return;
+    }
+
+    originalRAF.call(window, onFrame);
+  }
+
+  if (originalRAF) {
+    window.requestAnimationFrame = function(callback) {
+      if (!gameReadySent) {
+        return originalRAF.call(window, function(timestamp) {
+          frameCount++;
+          if (frameCount >= RAF_FRAME_THRESHOLD && !gameReadySent) {
+            gameReadySent = true;
+            sendEvent('game_ready', {
+              frame_count: frameCount,
+              detected_at: Date.now()
+            });
+          }
+          callback(timestamp);
+        });
+      }
+      return originalRAF.call(window, callback);
+    };
+  }
+
+  // --- First User Interaction Detection ---
+
+  function setupFirstInteractionDetection() {
+    var events = ['touchstart', 'mousedown', 'keydown'];
+
+    function onFirstInteraction() {
+      if (firstInteractionSent) return;
+      firstInteractionSent = true;
+      sendEvent('user_interaction_start', null);
+
+      for (var i = 0; i < events.length; i++) {
+        document.removeEventListener(events[i], onFirstInteraction, true);
+      }
+    }
+
+    for (var i = 0; i < events.length; i++) {
+      document.addEventListener(events[i], onFirstInteraction, true);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFirstInteractionDetection);
+  } else {
+    setupFirstInteractionDetection();
+  }
+
+  // --- Auto Error Capture ---
+
+  window.addEventListener('error', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    sendEvent('error', {
+      message: event.message || 'Unknown error',
+      source: event.filename || '',
+      lineno: event.lineno || 0,
+      colno: event.colno || 0,
+      auto_captured: true
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    var reason = event.reason;
+    sendEvent('error', {
+      message: (reason instanceof Error) ? reason.message : String(reason),
+      type: 'unhandled_promise_rejection',
+      auto_captured: true
+    });
+  });
+
+  // --- Public API ---
+
+  window.playablesSDK = {
+    complete: function(score) {
+      sendEvent('game_ended', {
+        score: score,
+        completed: true
+      });
+    },
+
+    error: function(message) {
+      if (errorSent) return;
+      errorSent = true;
+      sendEvent('error', {
+        message: message || 'Unknown error',
+        auto_captured: false
+      });
+    },
+
+    sendEvent: function(eventName, payload) {
+      if (!eventName || typeof eventName !== 'string') return;
+      sendEvent(eventName, payload);
+    }
+  };
+
+  // Kick off rAF detection in case no game code calls rAF immediately
+  if (originalRAF) {
+    originalRAF.call(window, onFrame);
+  }
+})();</script>
+<script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GridRows - Modern CSS Grid Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    :root {
+        --color-teal: #29e0bf;
+        --color-dark-teal: #006272;
+        --color-indigo: #3a3fb5;
+        --color-gray: #a5a5a5;
+        --color-purple: #ac2a97;
+        --color-red: #e8362a;
+        --bg-dark: #0f1117;
+        --bg-light: #f8f9fc;
+        --text-dark: #1c1c1e;
+        --text-light: #ffffff;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+ 
+</style>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="topnav" id="myTopnav">
+        <div class="nav-container">
+            <a href="#home" class="logo">
+                <i class="fa-solid fa-layer-group"></i>
+                Grid<span>Rows</span>
+            </a>
+            <div class="menu">
+                <a href="#home" class="active">Home</a>
+                <a href="#gridrows">Grid Rows</a>
+                <a href="#colors">Colors</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <a href="javascript:void(0);" class="icon" onclick="toggleNav()">
+                <i class="fa fa-bars"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Modern CSS Grid<br><span class="highlight">Row Layouts</span></h1>
+                <p>Explore 9 powerful grid row configurations with precise column ratios. Built with modern CSS, smooth animations, and pixel-perfect responsive design.</p>
+                <div class="btn-group">
+                    <a href="#gridrows" class="btn btn-primary">
+                        <i class="fa-solid fa-grid"></i>
+                        Explore Grids
+                    </a>
+                    <a href="#colors" class="btn btn-secondary">
+                        <i class="fa-solid fa-palette"></i>
+                        View Colors
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Grid Rows Section -->
+    <section id="gridrows">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag">GRID SHOWCASE</span>
+                <h2>CSS Grid Row Patterns</h2>
+                <p>Each row demonstrates a unique column fraction layout using CSS Grid. Resize your browser to see mobile stacking behavior.</p>
+            </div>
+
+            <!-- Row 1 -->
+            <div class="row-demo">
+                <h3>Row 1 <span class="badge">grid-template-columns: 1fr</span></h3>
+                <div class="grid-row row-1">
+                    <div class="grid-item bg-teal">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Full Width Column</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="row-demo">
+                <h3>Row 2 <span class="badge">grid-template-columns: 1fr 1fr</span></h3>
+                <div class="grid-row row-2">
+                    <div class="grid-item bg-dark-teal">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Equal Column</div>
+                    </div>
+                    <div class="grid-item bg-indigo">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Equal Column</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="row-demo">
+                <h3>Row 3 <span class="badge">grid-template-columns: 1fr 1fr 1fr</span></h3>
+                <div class="grid-row row-3">
+                    <div class="grid-item bg-purple">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Third</div>
+                    </div>
+                    <div class="grid-item bg-red">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Third</div>
+                    </div>
+                    <div class="grid-item bg-gray">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Third</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 4 -->
+            <div class="row-demo">
+                <h3>Row 4 <span class="badge">grid-template-columns: 1fr 1fr 1fr 1fr</span></h3>
+                <div class="grid-row row-4">
+                    <div class="grid-item bg-teal">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Quarter</div>
+                    </div>
+                    <div class="grid-item bg-dark-teal">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Quarter</div>
+                    </div>
+                    <div class="grid-item bg-indigo">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Quarter</div>
+                    </div>
+                    <div class="grid-item bg-purple">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Quarter</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 5 -->
+            <div class="row-demo">
+                <h3>Row 5 <span class="badge">grid-template-columns: 1fr 2fr 1fr 1fr</span></h3>
+                <div class="grid-row row-5">
+                    <div class="grid-item bg-red">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">20%</div>
+                    </div>
+                    <div class="grid-item bg-gray">
+                        <div class="fr-label">2fr</div>
+                        <div class="desc">40% - Featured</div>
+                    </div>
+                    <div class="grid-item bg-teal">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">20%</div>
+                    </div>
+                    <div class="grid-item bg-dark-teal">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">20%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 6 -->
+            <div class="row-demo">
+                <h3>Row 6 <span class="badge">grid-template-columns: 1fr 3fr 1fr</span></h3>
+                <div class="grid-row row-6">
+                    <div class="grid-item bg-indigo">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Sidebar</div>
+                    </div>
+                    <div class="grid-item bg-purple">
+                        <div class="fr-label">3fr</div>
+                        <div class="desc">Main Content</div>
+                    </div>
+                    <div class="grid-item bg-red">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">Sidebar</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 7 -->
+            <div class="row-demo">
+                <h3>Row 7 <span class="badge">grid-template-columns: 1fr 2fr 2fr 1fr</span></h3>
+                <div class="grid-row row-7">
+                    <div class="grid-item bg-gray">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">~16.7%</div>
+                    </div>
+                    <div class="grid-item bg-teal">
+                        <div class="fr-label">2fr</div>
+                        <div class="desc">~33.3%</div>
+                    </div>
+                    <div class="grid-item bg-dark-teal">
+                        <div class="fr-label">2fr</div>
+                        <div class="desc">~33.3%</div>
+                    </div>
+                    <div class="grid-item bg-indigo">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">~16.7%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 8 -->
+            <div class="row-demo">
+                <h3>Row 8 <span class="badge">grid-template-columns: 2fr 2fr</span></h3>
+                <div class="grid-row row-8">
+                    <div class="grid-item bg-purple">
+                        <div class="fr-label">2fr</div>
+                        <div class="desc">50% Equal Split</div>
+                    </div>
+                    <div class="grid-item bg-red">
+                        <div class="fr-label">2fr</div>
+                        <div class="desc">50% Equal Split</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 9 -->
+            <div class="row-demo">
+                <h3>Row 9 <span class="badge">grid-template-columns: 3fr 1fr</span></h3>
+                <div class="grid-row row-9">
+                    <div class="grid-item bg-gray">
+                        <div class="fr-label">3fr</div>
+                        <div class="desc">75% Primary Content</div>
+                    </div>
+                    <div class="grid-item bg-teal">
+                        <div class="fr-label">1fr</div>
+                        <div class="desc">25% Sidebar</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Colors Section -->
+    <section id="colors">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag">THEME PALETTE</span>
+                <h2>Brand Color System</h2>
+                <p>Click any hex code to copy it. Each color is carefully selected for modern UI design.</p>
+            </div>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-display bg-teal">#29e0bf</div>
+                    <div class="color-info">
+                        <h4>Vibrant Teal</h4>
+                        <span class="hex" onclick="copyHex('#29e0bf', this)">#29e0bf</span>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-display bg-dark-teal">#006272</div>
+                    <div class="color-info">
+                        <h4>Deep Teal</h4>
+                        <span class="hex" onclick="copyHex('#006272', this)">#006272</span>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-display bg-indigo">#3a3fb5</div>
+                    <div class="color-info">
+                        <h4>Modern Indigo</h4>
+                        <span class="hex" onclick="copyHex('#3a3fb5', this)">#3a3fb5</span>
+                    </div>
+                <div class="color-card">
+                    <div class="color-display bg-gray">#a5a5a5</div>
+                    <div class="color-info">
+                        <h4>Neutral Gray</h4>
+                        <span class="hex" onclick="copyHex('#a5a5a5', this)">#a5a5a5</span>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-display bg-purple">#ac2a97</div>
+                    <div class="color-info">
+                        <h4>Bold Purple</h4>
+                        <span class="hex" onclick="copyHex('#ac2a97', this)">#ac2a97</span>
+                    </div>
+                </div>
+                <div class="color-card">
+                    <div class="color-display bg-red">#e8362a</div>
+                    <div class="color-info">
+                        <h4>Alert Red</h4>
+                        <span class="hex" onclick="copyHex('#e8362a', this)">#e8362a</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag" style="color: var(--color-teal); border-color: var(--color-teal);">ABOUT GRIDROWS</span>
+                <h2 style="color: white;">Why CSS Grid?</h2>
+                <p>Modern layouts made simple with powerful grid fraction units</p>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Precision Layout Control</h3>
+                    <p>CSS Grid revolutionizes web layouts by giving you complete control over both rows and columns. Unlike flexbox, grid allows true two-dimensional layouts with predictable spacing.</p>
+                    <p>These 9 row patterns cover 90% of modern web design needs - from simple equal columns to complex asymmetric layouts with featured content areas.</p>
+                    <ul class="feature-list">
+                        <li><i class="fa-solid fa-check"></i> Explicit column ratio control with fr units</li>
+                        <li><i class="fa-solid fa-check"></i> Responsive by default - stacks on mobile</li>
+                        <li><i class="fa-solid fa-check"></i> No clearfix hacks or float nonsense</li>
+                        <li><i class="fa-solid fa-check"></i> Perfect alignment across rows and columns</li>
+                    </ul>
+                </div>
+                <div class="about-visual">
+                    <div class="floating-cards">
+                        <div class="float-card">
+                            <i class="fa-solid fa-cube"></i>
+                        </div>
+                        <div class="float-card">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div class="float-card">
+                            <i class="fa-solid fa-table-cells"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <div class="section-header">
+                <span class="tag">GET IN TOUCH</span>
+                <h2>Start Building With Grid</h2>
+                <p>Have questions about implementing these layouts? Drop us a message.</p>
+            </div>
+            <div class="contact-container">
+                <form class="contact-form" onsubmit="handleSubmit(event)">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" placeholder="Tell us about your project..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <h3 style="color: white; margin-bottom: 1rem;">GridRows</h3>
+                <p>Modern CSS Grid Layouts for the Future Web</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-github"></i></a>
+                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-dribbble"></i></a>
+                    <a href="#"><i class="fa-brands fa-codepen"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 GridRows. Built with CSS Grid, Poppins, and modern best practices.</p>
+            </div>
+        </div>
+    </footer>
+
+<script>
+    // Toggle responsive navbar
+    function toggleNav() {
+        const nav = document.getElementById("myTopnav");
+        nav.classList.toggle("responsive");
+    }
+
+    // Active link on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.topnav .menu a');
+
+    function updateActiveLink() {
+        let scrollY = window.pageYOffset;
+
+        sections.forEach(section => {
+            const sectionHeight = section.offsetHeight;
+            const sectionTop = section.offsetTop - 100;
+            const sectionId = section.getAttribute('id');
+
+            if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + sectionId) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+
+    // Fade in on scroll animation
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.row-demo, .color-card').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Copy hex code
+    function copyHex(hex, element) {
+        navigator.clipboard.writeText(hex).then(() => {
+            const original = element.textContent;
+            element.textContent = 'Copied!';
+            element.style.background = 'var(--color-teal)';
+            element.style.color = 'white';
+            setTimeout(() => {
+                element.textContent = original;
+                element.style.background = '#f3f4f6';
+                element.style.color = '#374151';
+            }, 1500);
+        });
+    }
+
+    // Form submit
+    function handleSubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        alert(`Thanks ${name}! Your message has been received. We'll get back to you soon.`);
+        e.target.reset();
+    }
+
+    // Close mobile menu on link click
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            const nav = document.getElementById("myTopnav");
+            nav.classList.remove("responsive");
+        });
+    });
+</script>
+</body>
+</html>
