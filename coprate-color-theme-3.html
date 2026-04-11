@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+   
+   <style>
+      @import url('https://fonts.googleapis.com/css2?family=Bilbo+Swash+Caps&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+     
+     </style>
+   
+    <title>Document</title>
+    <link rel="stylesheet" href="css/style-theme.css">
+</head>
+<body>
+
+<div class="topnav" id="myTopnav">
+    <a href="#home" class="active">Home</a>
+    <a href="#contact">Contact</a>
+    <a href="#about">About</a>
+    <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+      <i class="fa fa-bars"></i>
+    </a>
+  </div>
+  <script>
+  function myFunction() {
+    var x = document.getElementById("myTopnav");
+    if (x.className === "topnav") {
+      x.className += " responsive";
+    } else {
+      x.className = "topnav";
+    }
+  }
+  </script>
+
+  </div>
+  <div class="row-1 content-grid bg-5-coprate-3">
+  
+      <div class="grid-item">
+        <div class="slider">
+          <div class="slides">
+            <div class="slide active">
+              <img src="https://picsum.photos/800/400?random=1" alt="Slide 1">
+            </div>
+            <div class="slide">
+              <img src="https://picsum.photos/800/400?random=2" alt="Slide 2">
+            </div>
+            <div class="slide">
+              <img src="https://picsum.photos/800/400?random=3" alt="Slide 3">
+            </div>
+          </div>
+      
+          <!-- Navigation dots -->
+          <div class="slider-dots">
+            <span class="dot active" data-slide="0"></span>
+            <span class="dot" data-slide="1"></span>
+            <span class="dot" data-slide="2"></span>
+          </div>
+        </div>
+      </div>
+  
+  <div class="grid-item-1">
+
+</div>
+
+
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  const sliders = document.querySelectorAll('.slider');
+
+  sliders.forEach(slider => {
+    const slides = slider.querySelectorAll('.slide');
+    const dots = slider.querySelectorAll('.dot');
+    let currentSlide = 0;
+    let slideInterval;
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove('active'));
+      dots.forEach(dot => dot.classList.remove('active'));
+
+      slides[index].classList.add('active');
+      dots[index].classList.add('active');
+      currentSlide = index;
+    }
+
+    function nextSlide() {
+      let next = currentSlide + 1;
+      if (next >= slides.length) next = 0;
+      showSlide(next);
+    }
+
+    function startAutoSlide() {
+      slideInterval = setInterval(nextSlide, 4000); // 4s per slide
+    }
+
+    function stopAutoSlide() {
+      clearInterval(slideInterval);
+    }
+
+    // Dot click controls
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        stopAutoSlide();
+        showSlide(index);
+        startAutoSlide();
+      });
+    });
+
+    // Pause on hover
+    slider.addEventListener('mouseenter', stopAutoSlide);
+    slider.addEventListener('mouseleave', startAutoSlide);
+
+    // Start it up
+    startAutoSlide();
+  });
+});
+
+</script>
+      <div class="row-2 content-grid bg-4-coprate-3">
+        <div class="grid-item-1">
+          <h2 class="heading-one">
+            Aspernatur totam <br> labore sint veritatis.
+        </h2>
+        <div class="hr-1"></div>
+        
+
+    </div>
+    <div class="grid-item-1">
+      <h2 class="heading-one">
+       voluptate quo unde explicabo! <br>Velit eos voluptatum illo 
+    </h2>
+    <div class="hr-1"></div>
+    </div>  
+    
+    <div class="grid-item-1">
+      <h2 class="heading-one">
+        Odit molestiae aspernatur totam <br> labore sint veritatis.
+    </h2>
+        <div class="hr-1"></div>
+</div>
+<div class="grid-item-1">
+  <h2 class="heading-one">
+    Lorem ipsum dolor sit amet consectetur adipisicing elit. <br> Officiis minima perspiciatis,
+</h2>
+<div class="hr-1"></div>
+</div>
+  </div>
+  <!-- Section 2 -->
+  <div class="row-3 content-grid bg-1-coprate-3">
+    <div class="grid-item-1">
+      <h2 class="heading-two">
+        Aspernatur totam <br> labore sint veritatis.
+    </h2>
+    <div class="hr-2"></div>
+    
+
+</div>
+<div class="grid-item-1">
+  <h2 class="heading-two">
+   voluptate quo unde explicabo! <br>Velit eos voluptatum illo 
+</h2>
+<div class="hr-2"></div>
+</div>  
+
+<div class="grid-item-1">
+  <h2 class="heading-two">
+    Odit molestiae aspernatur totam <br> labore sint veritatis.
+</h2>
+<div class="hr-2"></div>
+</div>
+<div class="grid-item-1">
+<h2 class="heading-two">
+Lorem ipsum dolor sit amet consectetur adipisicing elit. <br> Officiis minima perspiciatis,
+</h2>
+<div class="hr-2"></div>
+</div>
+<div class="grid-item-1">
+  <h2 class="heading-two">
+    Odit molestiae aspernatur totam <br> labore sint veritatis.
+</h2>
+<div class="hr-2"></div>
+</div>
+<div class="grid-item-1">
+<h2 class="heading-two">
+Lorem ipsum dolor sit amet consectetur adipisicing elit. <br> Officiis minima perspiciatis,
+</h2>
+<div class="hr-2"></div>
+</div>
+</div>
+</body>
+</html>
+

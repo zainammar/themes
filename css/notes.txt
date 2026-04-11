@@ -1,0 +1,113 @@
+Coprate Theme 1
+
+#0a0908
+#22333b
+#eae0d5
+#c6ac8f
+#5e503f
+
+Coprate Theme 2
+
+#fffcf2
+#ccc5b9
+#403d39
+#252422
+#eb5e28
+
+Coprate Theme 3
+#eec643
+#141414
+#eef0f2
+#0d21a1
+
+Coprate Theme 3
+Color full
+
+#29e0bf
+#006272
+#3a3fb5
+#a5a5a5
+#ac2a97   
+#e8362a
+
+
+Female Theme 01
+#8100D1
+#B500B2
+#FF52A0
+#FFA47F
+
+Female Theme 02
+#15173D
+#982598
+#E491C9
+#F1E9E9
+
+
+Theme-Browen-Z
+
+#FFF8F0
+#C08552
+#8C5A3C
+#4B2E2B
+
+
+Theme Red 1
+
+#F63049
+#D02752
+#8A244B
+#111F35
+#EEEEEE
+
+
+
+
+
+
+
+.bg-3-coprate-1{
+    background-color:#29e0bf;
+}
+
+
+
+.bg-3-coprate-2{
+    background-color:#006272;
+}
+
+
+
+.bg-3-coprate-3{
+    background-color::#e8362a;;
+}
+
+
+
+.bg-3-coprate-4{
+    background-color:#3a3fb5;
+}
+
+
+
+.bg-3-coprate-5{
+    background-color:#a5a5a5;
+}
+
+.bg-3-coprate-6{
+    background-color:#ac2a97 ;
+}
+
+
+
+
+
+Coprate Theme 3
+Color full
+
+#29e0bf
+#006272
+#3a3fb5
+#a5a5a5
+#ac2a97   
+#e8362a
