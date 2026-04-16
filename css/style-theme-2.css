@@ -2,7 +2,9 @@
     padding: 0px;
     margin: 0px;
 }
-
+body{
+  background-color:  #FBC3C1;
+}
 /* GRID */
 
   /* Grid Content */
@@ -79,15 +81,20 @@
        
     }
 
-        /*6 columns, 1 row */
+      
         .row-7 {
           grid-template-columns: 1fr 2fr 2fr 1fr;
          
       }
 
-       /*6 columns, 1 row */
+     
        .row-8 {
         grid-template-columns: 2fr 2fr;
+       
+    }
+      
+       .row-9 {
+        grid-template-columns: 3fr 1fr;
        
     }
 
@@ -110,13 +117,13 @@
 
 .topnav {
     overflow: hidden;
-    background-color: #2F2FE4;
+    background-color: #FE81D4;
   }
   
   .topnav a {
     float: left;
     display: block;
-    color: #f2f2f2;
+    color: #000000;
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
@@ -129,7 +136,7 @@
   }
   
   .topnav a.active {
-    background-color: #F02D3A;
+    background-color:   #ffffff;
     color: rgb(0, 0, 0);
   }
   
@@ -161,11 +168,11 @@
 
 
 .color-theme{
-    background-color: #2F2FE4;
-    background-color: #ffffff;
+    background-color: #FE81D4;
+    background-color: #FAACBF;
     background-color: #1A1953;
-    background-color: #080616;
-    background-color: #F02D3A;
+    background-color: #FBC3C1;
+    background-color: #FFEABB;
    
 }
 
@@ -173,10 +180,10 @@
 
 
 .bg-t2-a{
-    background-color: #2F2FE4;
+  background-color: #FAACBF;
 }
 .bg-t2-b{
-    background-color: #1A1953;
+  background-color: #FE81D4;
 }
 
 .bg-t2-c{
@@ -184,22 +191,60 @@
 }
 
 .bg-t2-d{
-    background-color: #F02D3A;
+  background-color: #FBC3C1;
+}
+
+
+
+.heading-one{
+    font-family: fantasy;
+    font-size: xx-large;
+    font-weight: bolder;
+    color:#000000;
 }
 
 
 
 
+.text-one{
+
+    font-family: cursive;
+    font-size:25px;
+
+    color:#000000;
+    text-align: left;
+}
+
+
+img{
+  width: 100%;
+  height: auto;
+}
+
+.text-two{
+
+  font-family: cursive;
+  font-size: larger;
+  font-weight: bolder;
+  color:#000000;
+  text-align: left;
+}
+
+
+
+/* 
+Image Slider  */
+
 
 
 /* Footer */
 
-  .footer {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    background-color: #080616;
-    color: white;
-    
- }
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #FE81D4;
+  color: white;
+  
+}

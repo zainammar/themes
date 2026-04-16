@@ -3,46 +3,59 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body, html {
-  height: 100%;
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.hero-image {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("Picture1.jpg");
-  height: 50%;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  position: relative;
-}
-
-.hero-text {
-  text-align: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-}
-
-.hero-text button {
-  border: none;
-  outline: 0;
-  display: inline-block;
-  padding: 10px 25px;
-  color: black;
-  background-color: #ddd;
-  text-align: center;
-  cursor: pointer;
-}
-
-.hero-text button:hover {
-  background-color: #555;
-  color: white;
-}
+  body{
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #111;
+  }
+  .content{
+    height: 400px;
+    width: 750px;
+    overflow: hidden;
+    box-shadow: 1px 1px 25px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    position: relative;
+  }
+  .content .images{
+    height: 100%;
+    width: 100%;
+    position: relative;
+  }
+  .images img{
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transform: scale(1);
+    transition: opacity 1.2s ease-in-out, transform 8s ease;
+  }
+  .images img.active{
+    opacity: 1;
+    transform: scale(1.1); /* Ken Burns zoom */
+    z-index: 1;
+  }
 </style>
+
+<script>
+  var indexValue = 0;
+  const img = document.querySelectorAll(".images img");
+  
+  function slideShow(){
+    img.forEach(img => img.classList.remove("active"));
+    indexValue++;
+    if(indexValue > img.length){indexValue = 1}
+    img[indexValue - 1].classList.add("active");
+    setTimeout(slideShow, 3500);
+  }
+  slideShow();
+</script>
 </head>
 <body>
 
