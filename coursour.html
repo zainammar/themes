@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/profile-zone-01.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Oswald:wght@200..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <title>Document</title>
+</head>
+<body>
+  <style>
+
+
+    .cursor {
+        width: 50px;
+        height: 50px;
+        background-color: rgba(0, 123, 255, 0.5);
+        border-radius: 50%;
+        position: absolute;
+        pointer-events: none;
+        transition: transform 0.12s;
+        transform: translate(-50%, -50%);
+        display: none; /* Hidden by default */
+    }
+    /* box */
+    .box {
+        background-color: #DFD0B8;
+        color:#153448;
+        margin: 20px;
+        border-radius: 8px;
+        transition: transform 0.2s;
+    }
+    
+    .box:hover {
+        transform: scale(1.1);
+        background-color: #948979;
+        color:#DFD0B8;
+    }
+        </style>     
+ <!-- Row with 1 column Navbar -->
+ 
+<div class="cursor"></div>
+
+        
+
+  <!-- Content over the video -->
+  <div class="row-2 content-grid">
+   
+      <div class="grid-item">
+        <h1 class="heading-1"> Biography</h1>
+        <p class="heading-1">
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.  
+        
+        </p>
+      </div>
+      <div class="grid-item">
+        <h1 class="heading-1"> Biography</h1>
+        <p class="heading-1">
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.  
+        
+        </p>
+      </div>
+    
+    
+
+
+
+
+<script>
+  const cursor = document.querySelector('.cursor');
+const boxes = document.querySelectorAll('.box');
+
+document.addEventListener('mousemove', (e) => {
+  cursor.style.display = 'block'; // Show the cursor
+  cursor.style.left = `${e.pageX}px`;
+  cursor.style.top = `${e.pageY}px`;
+});
+
+boxes.forEach(box => {
+  box.addEventListener('mouseenter', () => {
+      cursor.style.backgroundColor = 'rgba(255, 0, 0, 0.5)'; // Change color on hover
+  });
+
+  box.addEventListener('mouseleave', () => {
+      cursor.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Reset color
+  });
+});
+
+// Hide cursor when not moving
+let timeout;
+document.addEventListener('mousemove', () => {
+  clearTimeout(timeout);
+  cursor.style.display = 'block'; // Show cursor on movement
+  timeout = setTimeout(() => {
+      cursor.style.display = 'none'; // Hide after inactivity
+  }, 2000);
+});
+
+</script>
+
+
+</body>
+</html>
